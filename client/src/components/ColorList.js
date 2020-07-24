@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import axios from "axios";
+
+import { axiosWithAuth } from '../utils/axiosWithAuth';
 
 const initialColor = {
   color: "",
@@ -7,24 +8,65 @@ const initialColor = {
 };
 
 const ColorList = ({ colors, updateColors }) => {
-  console.log(colors);
   const [editing, setEditing] = useState(false);
   const [colorToEdit, setColorToEdit] = useState(initialColor);
+  const [newColor, setNewColor ] = useState(initialColor);
 
   const editColor = color => {
     setEditing(true);
     setColorToEdit(color);
   };
 
+  const onHeckingChange = evt => {
+    evt.preventDefault();
+
+    setNewColor({
+      ...newColor,
+      [evt.target.name]: evt.target.value,
+      code: {
+        ...newColor.code,
+        [evt.target.name]: evt.target.value,
+      }
+    })
+  }
+
+  const newColorSubmit = evt => {
+    evt.preventDefault();
+    
+    axiosWithAuth().post(`/api/colors`, newColor)
+      .then(response => {
+        console.log(response);
+      })
+      .catch(error => {
+        console.log(error.response);
+      })
+  }
+
   const saveEdit = e => {
     e.preventDefault();
-    // Make a put request to save your updated color
-    // think about where will you get the id from...
-    // where is is saved right now?
+    console.log(colorToEdit);
+    
+    axiosWithAuth().put(`/api/colors/${colorToEdit.id}`, colorToEdit)
+      .then(response => {
+        setEditing(false);
+        console.log(response);
+      })
+      .catch(error => {
+        console.log(error.response);
+      })
   };
 
   const deleteColor = color => {
-    // make a delete request to delete this color
+
+    console.log(color);
+    axiosWithAuth().delete(`/api/colors/${color.id}`)
+      .then(response => {
+        setEditing(false);
+        console.log(response);
+      })
+      .catch(error => {
+        console.log(error.response);
+      })
   };
 
   return (
@@ -80,6 +122,32 @@ const ColorList = ({ colors, updateColors }) => {
           </div>
         </form>
       )}
+      <form onSubmit = {newColorSubmit}>
+        <p>New Color</p>
+        <label>
+          Color: 
+          <input
+            type = "text"
+            name = "color"
+            value = {newColor.color}
+            onChange = {onHeckingChange}
+            placeholder = "white"
+          />
+        </label>
+        <label>
+          Hex Code:
+          <input
+            type = "text"
+            name = "hex"
+            value = {newColor.code.hex}
+            onChange = {onHeckingChange}
+            placeholder = "#ffffff"
+          />
+        </label>
+        <div className = "button-row">
+          <button onClick = {newColorSubmit}>+</button>
+        </div>
+      </form>
       <div className="spacer" />
       {/* stretch - build another form here to add a color */}
     </div>
