@@ -10,12 +10,37 @@ const initialColor = {
 const ColorList = ({ colors, updateColors }) => {
   const [editing, setEditing] = useState(false);
   const [colorToEdit, setColorToEdit] = useState(initialColor);
+  const [newColor, setNewColor ] = useState(initialColor);
 
   const editColor = color => {
     setEditing(true);
     setColorToEdit(color);
-    console.log(colorToEdit);
   };
+
+  const onHeckingChange = evt => {
+    evt.preventDefault();
+
+    setNewColor({
+      ...newColor,
+      [evt.target.name]: evt.target.value,
+      code: {
+        ...newColor.code,
+        [evt.target.name]: evt.target.value,
+      }
+    })
+  }
+
+  const newColorSubmit = evt => {
+    evt.preventDefault();
+    
+    axiosWithAuth().post(`/api/colors`, newColor)
+      .then(response => {
+        console.log(response);
+      })
+      .catch(error => {
+        console.log(error.response);
+      })
+  }
 
   const saveEdit = e => {
     e.preventDefault();
@@ -97,6 +122,32 @@ const ColorList = ({ colors, updateColors }) => {
           </div>
         </form>
       )}
+      <form onSubmit = {newColorSubmit}>
+        <p>New Color</p>
+        <label>
+          Color: 
+          <input
+            type = "text"
+            name = "color"
+            value = {newColor.color}
+            onChange = {onHeckingChange}
+            placeholder = "white"
+          />
+        </label>
+        <label>
+          Hex Code:
+          <input
+            type = "text"
+            name = "hex"
+            value = {newColor.code.hex}
+            onChange = {onHeckingChange}
+            placeholder = "#ffffff"
+          />
+        </label>
+        <div className = "button-row">
+          <button onClick = {newColorSubmit}>+</button>
+        </div>
+      </form>
       <div className="spacer" />
       {/* stretch - build another form here to add a color */}
     </div>
